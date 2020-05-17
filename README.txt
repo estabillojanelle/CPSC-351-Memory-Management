@@ -14,7 +14,9 @@ Programming Language Used: C++
 
 How to Execute the Program
 --------------------------------------
-
+$ make all
+$ 
+$
 
 Collaboration
 --------------------------------------
