@@ -15,12 +15,14 @@ Programming Language Used: C++
 How to Execute the Program
 --------------------------------------
 $ make all
-$ 
-$
+$ ./main
+$ User Input
 
 Collaboration
 --------------------------------------
-
+1st week - Researched and understand the Project
+2nd week - Coded, & Did Documentation
 
 Additional Notes about the Project
 --------------------------------------
+NONE
