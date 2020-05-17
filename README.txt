@@ -14,7 +14,7 @@ Programming Language Used: C++
 
 How to Execute the Program
 --------------------------------------
-$ make all
+$ g++ -o main main.cpp process.cpp 
 $ ./main
 $ User Input
 
