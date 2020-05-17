@@ -93,6 +93,35 @@ void get_user_input()
   }
 }
 
+////////////////////print memorymap///////////////
+void printmemorymap(Frame *memoryMap,int pagesize,int memorysize,FILE *fp)
+{
+  int lbound,hbound;
+  if (fprintf(fp, "\t\t\t  Memory map:") < 0)
+  {
+    perror("fprintf");
+  }
+  for (int i = 0; i < memorysize; i+= pagesize)
+  {
+    lbound = i;
+    hbound = i + pagesize - 1;
+    if (memoryMap[i].pid == -1)
+    {
+      if (fprintf(fp, "%d-%d: Free frame\n\t\t\t\t\t\t     ", lbound, hbound) < 0)
+      {
+        perror("fprintf");
+      }
+    }
+    else
+    {
+      if (fprintf(fp, "%d-%d: Process %d, Page %d\n\t\t\t\t\t\t     ", lbound,
+                  hbound, memoryMap[i].pid, memoryMap[i].pageNumber) < 0)
+      {
+        perror("fprintf");
+      }
+    }
+  }
+}
 ///////////////////////////////////////////////////
 //////////collect_file_data()////////////////////
 ///store data in
@@ -194,7 +223,7 @@ void displayarrival(int clock, vector<process> &processqueue,FILE *fp)
           }
       }
     //now display the process list of arrival process
-      if(fprintf(fp," Process %d arrives\n\tInput Queue: [",processqueue[processqueue.size()-1].processid)<0)
+      if(fprintf(fp," Process %d arrives\n\t      Input Queue: [",processqueue[processqueue.size()-1].processid)<0)
       {
             perror("fprintf");
       }
@@ -205,7 +234,7 @@ void displayarrival(int clock, vector<process> &processqueue,FILE *fp)
                 perror("fprintf");
             }
       }
-      if(fprintf(fp,"]\n")<0)
+      if(fprintf(fp,"]\n\t\t\t\t")<0)
       {
           perror("fprintf");
       }
@@ -280,33 +309,19 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
 
                 cout<<"process....queue ....check... showing output as process moved.."<<endl;
                 //show the prcoess is now in memory map
-                if(fprintf(fp,"\t MM moves Process %d to memory\n",processqueue[d].processid)<0)
+                if(fprintf(fp,"\tMM moves Process %d to memory\n",processqueue[d].processid)<0)
                 {
                       perror("fprintf");
                 }
                   cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque"<<endl;
                   //erasing the vector/...
-              //  processqueue.erase(processqueue.begin() +1);
-              vector <process> temp1;
-              int loc =0;
-              for(int t=d+1;t<processqueue.size();t++)
-              {
-                temp1[loc] = processqueue[t];
-                loc++;
-              }
-              cout<<"process....queue ....check... temp1 vector is created...."<<endl;
-              processqueue.clear();
-              //now copy elments back in processqueu
-              for(int t=0;t<temp1.size();t++)
-              {
-                  cout<<"process....queue ....check... putting back to processqueue..."<<endl;
-                processqueue[t] = temp1[t];
-              }
+               processqueue.erase(processqueue.begin());
+
                 //now display the process list of arrival process
                 if(processqueue.size()!=0)
                 {
                   cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque....done..showing process queue..not empty"<<endl;
-                      if(fprintf(fp,"\t Input Queue: [")<0)
+                      if(fprintf(fp,"\t\t\t\t Input Queue: [")<0)
                       {
                             perror("fprintf");
                       }
@@ -325,13 +340,14 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
                 else
                 {
                   cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque....done..showing process queue..empty"<<endl;
-                  if(fprintf(fp,"\t Input Queue: [ ]")<0)
+                  if(fprintf(fp,"\t\t\t\t Input Queue: [ ]\n")<0)
                   {
                         perror("fprintf");
                   }
                 }
 
         //print the memory map here....///////////////////////////
+        printmemorymap(memoryMap,pagesize,memorysize,fp);
       }
       ///the process in queue did not find space in memory map according to its memoryrequirement
       else if(d == size-1)

@@ -1,0 +1,29 @@
+t = 0: Process 1 arrives
+	      Input Queue: [1 ]
+				 Process 2 arrives
+	      Input Queue: [1 2 ]
+					MM moves Process 1 to memory
+				 Input Queue: [2 ]
+			  Memory map:0-99: Process 1, Page 1
+						     100-199: Process 1, Page 2
+						     200-299: Process 1, Page 3
+						     300-399: Process 1, Page 4
+						     400-499: Free frame
+						     500-599: Free frame
+						     600-699: Free frame
+						     700-799: Free frame
+						     800-899: Free frame
+						     900-999: Free frame
+						     	MM moves Process 2 to memory
+				 Input Queue: [ ]
+			  Memory map:0-99: Process 1, Page 1
+						     100-199: Process 1, Page 2
+						     200-299: Process 1, Page 3
+						     300-399: Process 1, Page 4
+						     400-499: Process 2, Page 1
+						     500-599: Process 2, Page 2
+						     600-699: Process 2, Page 3
+						     700-799: Process 2, Page 4
+						     800-899: Process 2, Page 5
+						     900-999: Process 2, Page 6
+						     
