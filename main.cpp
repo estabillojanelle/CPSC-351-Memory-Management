@@ -24,6 +24,7 @@ int page_size_index = 0; //index of array
 int number_of_process =0;//how many process
 int virtual_clock =0; //time clock
 vector <int> arrivaltimeset;
+vector <int> completetimeset;
 struct Frame
 {
   int lowerBound;
@@ -45,20 +46,12 @@ Frame::Frame(int x, int y)
   upperBound = y;
 }
 
-struct process
-{
-  int processid;
-  int processarrival;
-  int processtermination;
-  int processrequirememory;
 
-  //void processstore()
-
-};
 std::vector <process> processlist;
 std::vector <process> processqueue;
 std::vector <process> processInmemory;
 std::vector <process> processcomplete;
+std::vector <process> processcompleteandremoved;
 //process processlist[7];
 
 
@@ -250,7 +243,7 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
   ////////////////catch all free memory list in frameslist
   for(int f=0;f<memorysize;f+=pagesize)
   {
-    cout<<"FFFFFFFFFFFFFFFFFFFFFFFFF"<<endl;
+    //cout<<"FFFFFFFFFFFFFFFFFFFFFFFFF"<<endl;
     //checking if memorymap.pid is empty or not.. if is then put those frame list in free frames
     if(memoryMap[f].pid == -1)
     {
@@ -259,7 +252,7 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
       freeframes.push_back(Frame(freelbound,freehbound));
     }
   }
-  cout<<"doennnnnnnnnnnnnnnnnnnnnnnnnnn...free frames ready"<<endl;
+  //cout<<"doennnnnnnnnnnnnnnnnnnnnnnnnnn...free frames ready"<<endl;
   ///////////////now checking the processqueue processes can have memory in
   /////////////////memory map as processrequirememory
   int pageneed;
@@ -268,7 +261,7 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
 /////////////checking queue is empty or not ...if not need those process waiting in quueue in memorymap
   while(processqueue.size() !=0)
   {
-    cout<<"process....queue ....check....pageneed count..begin"<<endl;
+    //cout<<"process....queue ....check....pageneed count..begin"<<endl;
     size = processqueue.size();
     for(int d=0; d<size;d++)
     {
@@ -284,7 +277,7 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
 
       //now check the pageneed is less than available frames or not
       //if yes,,, allocate the memory to that process
-      cout<<"process....queue ....check....pageneed count..done.. get process freememory"<<endl;
+      //cout<<"process....queue ....check....pageneed count..done.. get process freememory"<<endl;
       if(pageneed<= freeframes.size())
       {
                 ///allocate the frames to the process
@@ -302,25 +295,25 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
                   //now remove the frames that used for process from the freeframes list
                   freeframes.pop_front();
                 }
-                  cout<<"process....queue ....check... get process freememory...done"<<endl;
+                //  cout<<"process....queue ....check... get process freememory...done"<<endl;
                   //now store that process information in the processinmemory vector
                 process temp = processqueue[d];
                 processInmemory.push_back(temp);
 
-                cout<<"process....queue ....check... showing output as process moved.."<<endl;
+              //  cout<<"process....queue ....check... showing output as process moved.."<<endl;
                 //show the prcoess is now in memory map
                 if(fprintf(fp,"\tMM moves Process %d to memory\n",processqueue[d].processid)<0)
                 {
                       perror("fprintf");
                 }
-                  cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque"<<endl;
+                //  cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque"<<endl;
                   //erasing the vector/...
                processqueue.erase(processqueue.begin());
 
                 //now display the process list of arrival process
                 if(processqueue.size()!=0)
                 {
-                  cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque....done..showing process queue..not empty"<<endl;
+                  //cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque....done..showing process queue..not empty"<<endl;
                       if(fprintf(fp,"\t\t\t\t Input Queue: [")<0)
                       {
                             perror("fprintf");
@@ -339,7 +332,7 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
                 }
                 else
                 {
-                  cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque....done..showing process queue..empty"<<endl;
+                  //cout<<"process....queue ....check... showing output as process moved..done.. erasing process from processque....done..showing process queue..empty"<<endl;
                   if(fprintf(fp,"\t\t\t\t Input Queue: [ ]\n")<0)
                   {
                         perror("fprintf");
@@ -365,6 +358,75 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
 
   ///clear the list of freeframes..
   freeframes.clear();
+}
+
+void displaycomplete(int virclock,vector<process> &processcomplete,FILE*fp,Frame *memoryMap,int pagsize,int memsize)
+{
+  bool check = false;
+  //check time is already display in the output file or not
+   if(completetimeset.size()!= 0)
+   {
+     for(int t=0; t<completetimeset.size();t++)
+     {
+       if(completetimeset[t]==virclock)
+       {
+         check = true;
+       }
+     }
+   }
+//now display the output
+//first display the time if time is not displayed before..
+  if(check == false)
+  {
+      completetimeset.push_back(virclock);
+
+      if(fprintf(fp,"t = %d:",virclock)<0)
+      {
+          perror("fprintf");
+      }
+  }
+
+  int processId;
+  size_t length;
+
+  /* Traverse through a vector of the id's of completed processes */
+  while (!processcomplete.empty())
+  {
+    processId = processcomplete.front().processid;
+    processcomplete.erase(processcomplete.begin());
+
+    /* Free the memory previously occupied by the process with id processId */
+   for(int i=0;i<memsize;i++)
+   {
+     if(memoryMap[i].pid ==processId)
+     {
+       memoryMap[i].pid = -1;
+     }
+   }
+
+    /* Traverse through the vector of processes currently in memory */
+    length = processInmemory.size();
+    for (int i = 0; i < length; i++)
+    {
+      /* If the pid of the completed process matches the pid of the process in
+      ** memory, then announce its completion, and print the current memory map.
+      ** Also, add it to the vector of completed processes, and erase it from
+      ** the vector of processes currently in memory.
+      */
+      if (processInmemory[i].processid == processId)
+      {
+        process temp = processInmemory[i];
+        if (fprintf(fp, " Process %d completes\n",temp.processid) < 0)
+        {
+          perror("fprintf");
+        }
+        //print the memory map here....///////////////////////////
+        printmemorymap(memoryMap,pagsize,memsize,fp);
+        processcompleteandremoved.push_back (temp);
+        processInmemory.erase(processInmemory.begin() + i);
+      }
+    }
+  }
 }
 
 ///////////////main function//////////////////////
@@ -395,7 +457,7 @@ int main()
  }
  vector <process> temp;
   //Now until the processlist is empty..
-  while(processlist.size()!=0 && virtual_clock < 1)
+  while(processlist.size()!=0 && virtual_clock < 1001)
   {
         //get the processes in the ready queue at time of arrival time
         if(processlist.size()!=0)
@@ -420,6 +482,15 @@ int main()
           ///get the information of memory map and decide to take it out the process from the queue and transfer to currently in memorymap
        memorymanager(memoryMap,processqueue,processInmemory,page_size,memory_size,fp);
 
+      //check if any complete process ....
+      for(int g =0; g<processInmemory.size();g++)
+      {
+        if(processInmemory[g].processtermination== virtual_clock)
+        {
+          processcomplete.push_back(processInmemory[g]);
+          displaycomplete(virtual_clock,processcomplete,fp,memoryMap,page_size,memory_size);
+        }
+      }
 
 
     virtual_clock++;
