@@ -1,7 +1,5 @@
-all: main process
+all: main 
 
-main: main.cpp
-	g++ -o main main.cpp
+main: main.cpp process.cpp
+	g++ -o main.cpp process.cpp main
 
-process: process.cpp
-	g++ -o process process.cpp
