@@ -9,7 +9,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
-//#include "process.h"
+#include "process.h"
 
 using namespace std;
 
@@ -45,6 +45,21 @@ Frame::Frame(int x, int y)
   lowerBound = x;
   upperBound = y;
 }
+
+// struct process
+// {
+//   int processid;
+//   int processarrival;
+//   int processtermination;
+//   int processrequirememory;
+//   int processaddmittime;
+//   int processcompletime;
+//   int processturnaroundtime;
+//
+//   void setprocessadmitandcompletetime(int clock);
+//   void setturnaroudtime();
+//
+// };
 
 
 std::vector <process> processlist;
@@ -235,8 +250,11 @@ void displayarrival(int clock, vector<process> &processqueue,FILE *fp)
 }
 
 /////////////memorymanager////////////
-void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process> &processInmemory,int pagesize,int memorysize,FILE *fp)
+void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process> &processInmemory,int pagesize,int memorysize,FILE *fp,int virtclock)
 {
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //make list of frames according to page size and memorysize..
   list <Frame> freeframes;
   int freelbound, freehbound;
@@ -298,6 +316,10 @@ void memorymanager(Frame *memoryMap,vector<process>&processqueue,vector<process>
                 //  cout<<"process....queue ....check... get process freememory...done"<<endl;
                   //now store that process information in the processinmemory vector
                 process temp = processqueue[d];
+                //first...set the addmited time and turnaround time..
+                temp.setprocessadmittime(virtclock);
+                //set the actual completed time
+                temp.setturnaroudtime();
                 processInmemory.push_back(temp);
 
               //  cout<<"process....queue ....check... showing output as process moved.."<<endl;
@@ -457,7 +479,7 @@ int main()
  }
  vector <process> temp;
   //Now until the processlist is empty..
-  while(processlist.size()!=0 && virtual_clock < 1001)
+  while(processcompleteandremoved.size()!= number_of_process && virtual_clock < 100000)
   {
         //get the processes in the ready queue at time of arrival time
         if(processlist.size()!=0)
@@ -480,12 +502,12 @@ int main()
           }
         }
           ///get the information of memory map and decide to take it out the process from the queue and transfer to currently in memorymap
-       memorymanager(memoryMap,processqueue,processInmemory,page_size,memory_size,fp);
+       memorymanager(memoryMap,processqueue,processInmemory,page_size,memory_size,fp,virtual_clock);
 
       //check if any complete process ....
       for(int g =0; g<processInmemory.size();g++)
       {
-        if(processInmemory[g].processtermination== virtual_clock)
+        if(processInmemory[g].processcompletime== virtual_clock)
         {
           processcomplete.push_back(processInmemory[g]);
           displaycomplete(virtual_clock,processcomplete,fp,memoryMap,page_size,memory_size);
@@ -496,11 +518,33 @@ int main()
     virtual_clock++;
   }
 
-  fclose(fp);
-  // for(int k=0; k<processqueue.size();k++)
-  // {
-  //      cout<< "processqueue: " << processqueue[k].processid<<endl;
-  // }
+  /* Calculate the average turnaround time by summing the total turnaround
+  ** time from the processes completed vector and dividing it by the number of
+  ** processes completed.
+  */
+  int processesCompletedSize = processcompleteandremoved.size();
+  int totalTurnaroundTime = 0;
+  float averageTurnaroundTime;
 
+  for (int i = 0; i < processesCompletedSize; i++)
+  {
+    totalTurnaroundTime += processcompleteandremoved[i].processturnaroundtime;
+ }
+  averageTurnaroundTime = (float)totalTurnaroundTime / processesCompletedSize;
+
+
+  if (fprintf(fp, "Average turnaround: %.2f (%d/%d)\n", averageTurnaroundTime) < 0)
+  {
+    perror("fprintf");
+  }
+
+  /* Close the file */
+  if (fclose(fp) != 0)
+  {
+    perror("fclose");
+  }
+
+  /* Deallocate the memory map */
+  delete[] memoryMap;
   return(0);
 }

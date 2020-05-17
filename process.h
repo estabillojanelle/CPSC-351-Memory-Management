@@ -8,7 +8,7 @@ struct process
   int processcompletime;
   int processturnaroundtime;
 
-  void setprocessadmitandcompletetime(int clock);
+  void setprocessadmittime(int clock);
   void setturnaroudtime();
 
 };
