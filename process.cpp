@@ -1,4 +1,11 @@
-
+/*AUTHORS
+--------------------------------------
+Nidhi Shah
+CPSC 351-02
+Janelle Estabillo
+CPSC 351-02
+ */
+// two functions to calculate the actual processcompletion time and turnaroudtime
 #include "process.h"
 #include <iostream>
 
